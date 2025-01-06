@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 
 // the amount of vertecies in the uniform positions buffer
-#define VERTEX_POSITIONS_AMOUNT 8
+#define VERTEX_POSITIONS_AMOUNT 12
 
 void WorldObject::CreateShaderProgram(const std::string& filePath) {
 	 ShaderParsing::ShaderProgramSource shaderProgramSource = ShaderParsing::ParseShader(filePath);
@@ -38,51 +38,30 @@ void WorldObject::CreateAndSendUniformVertexPositionBuffer(const GLchar* uniform
 	glUseProgram(m_shaderProgram);
 
 	float positions[VERTEX_POSITIONS_AMOUNT] = {
-        -0.1f, -0.1f,
-        0.1f, -0.1f,
-        0.1f,  0.1f,
+		-0.1f, -0.1f,
+         0.1f, -0.1f,
+		 0.1f,  0.1f,
         -0.1f,  0.1f,
+		-0.1f, -0.1f,
+		 0.1f,  0.1f,
 	};
 
 	GLint location = glGetUniformLocation(m_shaderProgram, uniformPositionsName);
 	if (location != -1) {
-		glUniform2fv(location, VERTEX_POSITIONS_AMOUNT, positions); // send the positions
+		std::cout << VERTEX_POSITIONS_AMOUNT << std::endl;
+		glUniform2fv(location, VERTEX_POSITIONS_AMOUNT/2, positions); // send the positions
 	}
 	else {
 		std::cout << "Uniform position name was not found!" << "\n";
 	}
+
+	glUseProgram(0);
 }
 
-WorldObject::WorldObject(GLuint maxObjects) {
-	// CREATE AND SETUP VERTEX ARRAY OBJECT FOR THE INSTANCED OBJECTS
 
-	// gen the vertex array and vertex buffer
-	glGenVertexArrays(1, &m_VAO);
-	glGenBuffers(GL_ARRAY_BUFFER, &m_objectsBuffer);
-
-	// bind vertex array buffer
-	glBindVertexArray(m_VAO);
-
-	// bind buffer and send data 
-	m_maxObjects = maxObjects;
+void WorldObject::SendInstanceArrays(const void* instanceArrays, GLuint targetStartOffset, GLuint dataStartOffset, GLuint amountElements) {
 	glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat3x3) * m_maxObjects, nullptr, GL_DYNAMIC_DRAW);
-
-	// set the position vectors
-	for (int i = 0; i < 3; ++i) {
-		glEnableVertexAttribArray(i);
-		glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat3x3), (void*)(i * sizeof(glm::vec3)));
-		glVertexAttribDivisor(i, 1);
-	}
-
-	// unbind buffers
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void WorldObject::SendInstanceArrays(const float* instanceArrays, GLuint targetStartOffset, GLuint dataStartOffset, GLuint amountElements) {
-	glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer);
-	glBufferSubData(m_objectsBuffer, targetStartOffset * sizeof(float), amountElements * sizeof(float), (void*)((float*)instanceArrays + dataStartOffset));
+	glBufferSubData(GL_ARRAY_BUFFER, targetStartOffset * sizeof(glm::mat4), amountElements * sizeof(glm::mat4), (void*)((glm::mat4*)instanceArrays + dataStartOffset));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -91,8 +70,39 @@ void WorldObject::RenderInstanced(GLuint targetStartOffset, GLuint amountElement
 	glBindVertexArray(m_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer);
 
-	glDrawArraysInstanced(GL_TRIANGLE_STRIP, targetStartOffset, amountElements, 4);
+	glDrawArraysInstanced(GL_TRIANGLES, targetStartOffset, 6, amountElements);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName) {
+	// CREATE AND SETUP VERTEX ARRAY OBJECT FOR THE INSTANCED OBJECTS
+
+	// Generate the vertex array and vertex buffer
+	glGenVertexArrays(1, &m_VAO);
+	glGenBuffers(1, &m_objectsBuffer);
+
+	// Bind vertex array
+	glBindVertexArray(m_VAO);
+
+	// Bind buffer and send data
+	m_maxObjects = maxObjects;
+	glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * m_maxObjects, nullptr, GL_DYNAMIC_DRAW);
+
+	// Set up instanced attributes
+	for (int i = 0; i < 4; ++i) {
+		glEnableVertexAttribArray(i);
+		glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(i * sizeof(glm::vec4)));
+		glVertexAttribDivisor(i, 1);
+	}
+
+	// Unbind buffers
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// create shader program and send vertex positions
+	CreateShaderProgram(shaderPath);
+	CreateAndSendUniformVertexPositionBuffer(uniformPositionsName);
 }

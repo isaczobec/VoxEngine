@@ -20,14 +20,14 @@ struct WorldObject {
 	GLuint m_texture;
 
 
-	WorldObject(GLuint maxObjects);
+	WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName);
 
 	void SetTexture(const char* textureFilePath);
 	void CreateShaderProgram(const std::string& filePath);
 	void CreateAndSendUniformVertexPositionBuffer(const GLchar* uniformPositionsName);
 	
 	// sends the array of objects to the gpu/vertex shader
-	void SendInstanceArrays(const float* instanceArrays, GLuint targetStartOffset, GLuint dataStartOffset, GLuint amountElements);
+	void SendInstanceArrays(const void* instanceArrays, GLuint targetStartOffset, GLuint dataStartOffset, GLuint amountElements);
 
 	void RenderInstanced(GLuint targetStartOffset, GLuint amountElements) const;
 

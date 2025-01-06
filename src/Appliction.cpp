@@ -77,8 +77,8 @@ int main(void)
 
     // set opengl settings
 	glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+ //   glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -129,6 +129,29 @@ int main(void)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
+    glm::mat4 o1(
+        2.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 2.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    );
+    glm::mat4 o2(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 8.0f, 0.0f, 0.0f,
+        0.3f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    );
+    glm::mat4 o3(
+        1.0f, 0.0f,-0.0f, 0.0f,
+        0.0f, 1.0f,-0.0f, 0.0f,
+        0.6f, 0.6f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    );
+    
+    glm::mat4 objects[3] = { o1, o2, o3 };
+
+    WorldObject wo(10, "Shaders/BasicShader.shader", "u_vertexPositions");
+    wo.SendInstanceArrays((void*)objects, 0, 0, 3);
 
 
     /* Loop until the user closes the window */
@@ -142,9 +165,11 @@ int main(void)
 
         glfwPollEvents();
 
-		glBindVertexArray(testVertexArray);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		//glBindVertexArray(testVertexArray);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glBindVertexArray(0);
+
+        wo.RenderInstanced(0, 3);
 
 
         /* Swap front and back buffers */
