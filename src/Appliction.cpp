@@ -150,8 +150,14 @@ int main(void)
     
     glm::mat4 objects[3] = { o1, o2, o3 };
 
+    GLfloat objData[15] = {
+        -0.5, -0.5, 0, 1, 1,
+        -0.5, -0.5, 3.141592 / 4, 1, 1,
+         0.5, -0.5, 0, 1, 1,
+    };
+
     WorldObject wo(10, "Shaders/BasicShader.shader", "u_vertexPositions");
-    wo.SendInstanceArrays((void*)objects, 0, 0, 3);
+    wo.SendInstanceData((void*)objData, 0, 0, 3);
 
 
     /* Loop until the user closes the window */
