@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 
 // the amount of vertecies in the uniform positions buffer
-#define VERTEX_POSITIONS_AMOUNT 12
+#define VERTEX_POSITIONS_AMOUNT 8
 #define VALUES_PER_OBJECT_INSTANCE 5
 
 void WorldObject::CreateShaderProgram(const std::string& filePath) {
@@ -10,10 +10,15 @@ void WorldObject::CreateShaderProgram(const std::string& filePath) {
 	 m_shaderProgram = ShaderParsing::CreateShader(shaderProgramSource.vertexSource, shaderProgramSource.fragmentSource);
 }
 
-void WorldObject::SetTexture(const char* textureFilePath) {
+// Creates and sets the texture of the object to the image specefied in textureFilePath.
+// Color textures are set to texture unit 0
+void WorldObject::SetTexture(const char* textureFilePath, const char* shaderTextureName, GLint textureUnitID) {
+		
+	glActiveTexture(0); // no texture unit needs to be active while generating/ setting up the texure
+
 	unsigned char* texture = SOIL_load_image(textureFilePath, &m_textureWidth, &m_textureHeight, nullptr, SOIL_LOAD_RGBA);
-	glGenTextures(1, &m_texture);
-	glBindTexture(GL_TEXTURE_2D, m_texture);
+	glGenTextures(1, &m_colorTexture);
+	glBindTexture(GL_TEXTURE_2D, m_colorTexture);
 
 	// Enable wrapping, maybe change later
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -28,8 +33,12 @@ void WorldObject::SetTexture(const char* textureFilePath) {
 		std::cout << "TEXTURE LOADING ERROR!" << "\n";
 
 	}
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(texture);
+
+	// Find the uniform location of the texture and set it
+	glUniform1i(glGetUniformLocation(m_shaderProgram, shaderTextureName), textureUnitID); // COLOR TEXTURE SET TO TEXTURE UNIT 0
 }
 
 
@@ -42,8 +51,6 @@ void WorldObject::CreateAndSendUniformVertexPositionBuffer(const GLchar* uniform
          0.1f, -0.1f,
 		 0.1f,  0.1f,
         -0.1f,  0.1f,
-		-0.1f, -0.1f,
-		 0.1f,  0.1f,
 	};
 
 	GLint location = glGetUniformLocation(m_shaderProgram, uniformPositionsName);
@@ -82,15 +89,23 @@ void WorldObject::SendInstanceData(
 
 // targetStartOffset: How many elements into the m_objectsBuffer to start rendering
 void WorldObject::RenderInstanced(GLuint targetStartOffset, GLuint amountElements) const {
+
+	// set active program, and bind the objects VAO, BufferData
 	glUseProgram(m_shaderProgram);
 	glBindVertexArray(m_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer);
+	//glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer); // Is this line necessary? the vao is already bound
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_colorTexture);
 
 	// TODO: This can be changed to instead used GL_TRIANGLES_FAN which will require only 4 vertecies instead of 6
-	glDrawArraysInstanced(GL_TRIANGLES, targetStartOffset, 6, amountElements);
+	glDrawArraysInstanced(GL_TRIANGLE_FAN, targetStartOffset, 4, amountElements);
 
+	// unbind texture unit and vertex array
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(0);
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0); // the vao was already bound?
 }
 
 WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName) {

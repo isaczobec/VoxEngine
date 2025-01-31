@@ -17,12 +17,12 @@ struct WorldObject {
 
 	int m_textureWidth;
 	int m_textureHeight;
-	GLuint m_texture;
+	GLuint m_colorTexture;
 
 
 	WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName);
 
-	void SetTexture(const char* textureFilePath);
+	void SetTexture(const char* textureFilePath, const char* shaderColorTextureName, GLint textureUnitID = 0);
 	void CreateShaderProgram(const std::string& filePath);
 	void CreateAndSendUniformVertexPositionBuffer(const GLchar* uniformPositionsName) const;
 	
