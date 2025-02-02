@@ -38,7 +38,7 @@ void WorldObject::SetTexture(const char* textureFilePath, const char* shaderText
 	SOIL_free_image_data(texture);
 
 	// Find the uniform location of the texture and set it
-	glUniform1i(glGetUniformLocation(m_shaderProgram, shaderTextureName), textureUnitID); // COLOR TEXTURE SET TO TEXTURE UNIT 0
+	glUniform1i(glGetUniformLocation(m_shaderProgram, shaderTextureName), textureUnitID); // COLOR TEXTURE SET TO TEXTURE UNIT ARGUMENT
 }
 
 
@@ -72,17 +72,16 @@ void WorldObject::CreateAndSendUniformVertexPositionBuffer(const GLchar* uniform
 // xPos, yPos, rot, xScale, yScale
 void WorldObject::SendInstanceData(
 	const void* instanceData, 
-	GLuint targetStartOffset, 
-	GLuint dataStartOffset, 
-	GLuint amountElements) 
+	GLuint targetStartOffset, // how far into the buffer, in elements, we will start replacing the data
+	GLuint dataStartOffset, // how far into our array (pointer), in elements, we will step before starting to replace data
+	GLuint amountElements) // how many instances (objects/elements) we will send data for. Starts from datastartOffset
 {
 	glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer);
-	GLuint elementBytesSize = VALUES_PER_OBJECT_INSTANCE * sizeof(GLfloat);
 	glBufferSubData(
 		GL_ARRAY_BUFFER, 
-		targetStartOffset * elementBytesSize, 
-		amountElements * elementBytesSize, 
-		(void*)((GLfloat*)instanceData + VALUES_PER_OBJECT_INSTANCE * dataStartOffset) // increment instancedata by datastartoffset
+		targetStartOffset * m_bytesPerInstance,
+		amountElements * m_bytesPerInstance,
+		(void*)((char*)instanceData + m_bytesPerInstance * dataStartOffset) // increment instancedata by datastartoffset. Cast to char so we can step forward 1 byte easily
 	);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -108,39 +107,21 @@ void WorldObject::RenderInstanced(GLuint targetStartOffset, GLuint amountElement
 	//glBindBuffer(GL_ARRAY_BUFFER, 0); // the vao was already bound?
 }
 
-WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName) {
-	// CREATE AND SETUP VERTEX ARRAY OBJECT FOR THE INSTANCED OBJECTS
+WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName, GLuint bytesPerInstance) {
 
+	m_bytesPerInstance = bytesPerInstance;
+
+	// CREATE VERTEX ARRAY OBJECT FOR THE INSTANCED OBJECTS
 	// Generate the vertex array and vertex buffer
 	glGenVertexArrays(1, &m_VAO);
 	glGenBuffers(1, &m_objectsBuffer);
 
-	// Bind vertex array
-	glBindVertexArray(m_VAO);
-
 	// Bind buffer and send data
 	m_maxObjects = maxObjects;
 	glBindBuffer(GL_ARRAY_BUFFER, m_objectsBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * VALUES_PER_OBJECT_INSTANCE * m_maxObjects, nullptr, GL_DYNAMIC_DRAW);
-
-	// Set up vertex array attributes
-	// calculate bytes per instance
-	GLuint bytesPerInstance = sizeof(GLfloat) * VALUES_PER_OBJECT_INSTANCE;
-	// POSITION
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, bytesPerInstance, (void*)(0 * sizeof(GLfloat)));
-	glVertexAttribDivisor(0, 1);
-	// ROTATION
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, bytesPerInstance, (void*)(2 * sizeof(GLfloat)));
-	glVertexAttribDivisor(1, 1);
-	// SCALE
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, bytesPerInstance, (void*)(3 * sizeof(GLfloat)));
-	glVertexAttribDivisor(2, 1);
+	glBufferData(GL_ARRAY_BUFFER, m_bytesPerInstance * m_maxObjects, nullptr, GL_DYNAMIC_DRAW);
 
 	// Unbind buffers
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// create shader program and send vertex positions

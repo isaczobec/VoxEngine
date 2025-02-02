@@ -14,13 +14,14 @@ struct WorldObject {
 	
 	GLuint m_objectsBuffer; // the bufffer containing transform matricies etc for this object
 	GLuint m_maxObjects;
+	GLuint m_bytesPerInstance;
 
 	int m_textureWidth;
 	int m_textureHeight;
 	GLuint m_colorTexture;
 
 
-	WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName);
+	WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName, GLuint bytesPerInstance);
 
 	void SetTexture(const char* textureFilePath, const char* shaderColorTextureName, GLint textureUnitID = 0);
 	void CreateShaderProgram(const std::string& filePath);

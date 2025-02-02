@@ -15,6 +15,7 @@
 
 #include "ShaderParsing.h"
 #include "WorldObject.h"
+#include "WorldObjectVertexAttributes.h"
 
 
 
@@ -156,17 +157,20 @@ int main(void)
          0.5, -0.5, 0, 1, 1,
     };
 
-    GLfloat objData1[15] = {
-        -0.5, 0.5, 0, 1, 1,
-        -0.5, 0.1, 3.141592 / 4, 1, 3,
-         0.5, 0.5, 0, 1, 1,
+    GLfloat objData1[18] = {
+        -0.5, 0.0, 0, 1, 1, 1,
+         0.0, 0.0, 0, 1, 1, 2,
+         0.5, 0.0, 0, 1, 1, 3,
     };
 
-    WorldObject wo(10, "Shaders/BasicShader.shader", "u_vertexPositions");
+    WorldObject wo(10, "Shaders/BasicShader.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_NORMAL);
+    WorldObjectAttributes::SetVertexAttribArrayNORMAL(wo);
     wo.SetTexture("Images/Screenshot 2025-01-30 223459.png", "colorTexture");
     wo.SendInstanceData((void*)objData, 0, 0, 3);
 
-    WorldObject wo1(10, "Shaders/BasicShader1.shader", "u_vertexPositions");
+    WorldObject wo1(10, "Shaders/BasicShaderAnimated.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_ANIMATED);
+    WorldObjectAttributes::SetVertexAttribArrayANIMATED(wo1);
+    WorldObjectAttributes::SetAnimationParameters(wo1, 3, 3, "u_animationSlices");
     wo1.SetTexture("Images/Screenshot 2025-01-19 203317.png", "colorTexture");
     wo1.SendInstanceData((void*)objData1, 0, 0, 3);
 
@@ -186,12 +190,12 @@ int main(void)
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		//glBindVertexArray(0);
 
-        wo.RenderInstanced(0, 3);
+        //wo.RenderInstanced(0, 3);
         wo1.RenderInstanced(0, 3);
 
         objData[0] += 0.01;
         objData[2] += 0.01;
-        wo.SendInstanceData((void*)objData, 0, 0, 3);
+        //wo.SendInstanceData((void*)objData, 0, 0, 3);
 
 
         /* Swap front and back buffers */
