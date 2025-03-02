@@ -2,6 +2,7 @@
 #include<GLFW/glfw3.h>
 #include <glm/vec2.hpp>
 #include <cmath>
+#include <iostream>
 
 InputManager* InputManager::m_Instance = nullptr;
 
@@ -37,16 +38,34 @@ void InputManager::UpdateCurrentMovementInput(GLFWwindow* window, int key, int s
 		default:
 			break;
 		case GLFW_KEY_A:
-			m_Instance->m_currentMovementInput.x = m_Instance->m_currentMovementInput.x - 1.0;
+			m_Instance->m_currentMovementInput.x -= 1.0;
 			break;
 		case GLFW_KEY_D:
-			m_Instance->m_currentMovementInput.x = m_Instance->m_currentMovementInput.x + 1.0;
+			m_Instance->m_currentMovementInput.x += 1.0;
 			break;
 		case GLFW_KEY_W:
-			m_Instance->m_currentMovementInput.y = m_Instance->m_currentMovementInput.y - 1.0;
+			m_Instance->m_currentMovementInput.y -= 1.0;
 			break;
 		case GLFW_KEY_S:
-			m_Instance->m_currentMovementInput.y = m_Instance->m_currentMovementInput.y + 1.0;
+			m_Instance->m_currentMovementInput.y += 1.0;
+			break;
+		}
+	} else if (action == GLFW_RELEASE) {
+		switch (key)
+		{
+		default:
+			break;
+		case GLFW_KEY_A:
+			m_Instance->m_currentMovementInput.x += 1.0;
+			break;
+		case GLFW_KEY_D:
+			m_Instance->m_currentMovementInput.x -= 1.0;
+			break;
+		case GLFW_KEY_W:
+			m_Instance->m_currentMovementInput.y += 1.0;
+			break;
+		case GLFW_KEY_S:
+			m_Instance->m_currentMovementInput.y -= 1.0;
 			break;
 		}
 	}
@@ -84,4 +103,5 @@ void InputManager::Refresh() {
 	// reset input vector
 	ResetMovementVector();
 }
+
 

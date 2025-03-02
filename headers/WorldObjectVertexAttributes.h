@@ -66,7 +66,7 @@ namespace WorldObjectAttributes {
 		glVertexAttribDivisor(2, 1);
 		// ANIMATION FRAME
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, BYTES_ANIMATED, (void*)(5 * sizeof(GLfloat)));
+		glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, BYTES_ANIMATED, (void*)(5 * sizeof(GLfloat)));
 		glVertexAttribDivisor(3, 1);
 
 		// Unbind buffers

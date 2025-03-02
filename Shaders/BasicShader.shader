@@ -11,6 +11,10 @@ out vec2 uvCoord;
 // uniform mat4 u_projectionMatrix;
 uniform vec2 u_vertexPositions[4];
 
+uniform vec2 u_cameraPosition;
+uniform vec2 u_cameraScale;
+uniform float u_cameraRotation;
+
 // the uv-coordinates will always be a uniform square, 
 // since were only rendering sprites.
 // predefine them here:
@@ -38,9 +42,23 @@ void main()
    rotatedpos = rotatedpos + pos;
 
    vec4 transformedPos = vec4(rotatedpos, 0, 1);
+
+   // perform camera transformations
+   transformedPos.x -= u_cameraPosition.x;
+   transformedPos.y -= u_cameraPosition.y;
+   vec4 rotatedCameraPos = vec4(
+        transformedPos.x * cos(u_cameraRotation) - transformedPos.y * sin(u_cameraRotation),
+        transformedPos.x * sin(u_cameraRotation) + transformedPos.y * cos(u_cameraRotation),
+        0,
+        1
+   );
+   rotatedCameraPos.x *= u_cameraScale.x;
+   rotatedCameraPos.y *= u_cameraScale.y;
+
+
   
-   gl_Position =  transformedPos;
-   fragPosition = transformedPos;
+   gl_Position =  rotatedCameraPos;
+   fragPosition = rotatedCameraPos;
 
    // set uv-coord to the appropriate value based on the vertex id
    uvCoord = uvCoords[gl_VertexID % 4];

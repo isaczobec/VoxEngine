@@ -17,11 +17,13 @@
 #include "WorldObject.h"
 #include "WorldObjectVertexAttributes.h"
 
+#include "camera.h"
+
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, width, height);
+	//glViewport(0, 0, width, height);
 }
 
 
@@ -30,8 +32,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 int main(void)
 {
-
-
     /* Initialize the library */
     if (!glfwInit())
         return -1;
@@ -87,70 +87,6 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
 
-
-    // create shader program 
-    ShaderParsing::ShaderProgramSource source = ShaderParsing::ParseShader("Shaders/BasicShader.shader");
-	unsigned int shaderProgram = ShaderParsing::CreateShader(source.vertexSource, source.fragmentSource);
-	glUseProgram(shaderProgram);
-
-
-    // create vertex arrays
-    unsigned int testVertexArray;
-	glGenVertexArrays(1, &testVertexArray);
-	glBindVertexArray(testVertexArray);
-
-    // create positions
-    float positions[12] = {
-         0.1f,0.1f,0.5f,
-         0.9f,0.1f,0.5f,
-         0.9f,0.9f,0.5f,
-         0.1f,0.9f,0.5f,
-    };
-
-	unsigned int testVertexPosBuffer;
-	glGenBuffers(1, &testVertexPosBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, testVertexPosBuffer);
-	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), positions, GL_STATIC_DRAW);
-
-    // create index buffer
-	unsigned int indicies[6] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-	unsigned int testIndexBuffer;
-    glGenBuffers(1, &testIndexBuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, testIndexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-
-    glm::mat4 o1(
-        2.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 2.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    );
-    glm::mat4 o2(
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 8.0f, 0.0f, 0.0f,
-        0.3f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    );
-    glm::mat4 o3(
-        1.0f, 0.0f,-0.0f, 0.0f,
-        0.0f, 1.0f,-0.0f, 0.0f,
-        0.6f, 0.6f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    );
-    
-    glm::mat4 objects[3] = { o1, o2, o3 };
-
     GLfloat objData[15] = {
         -0.5, -0.5, 0, 1, 1,
         -0.5, -0.1, 3.141592 / 4, 1, 3,
@@ -158,22 +94,29 @@ int main(void)
     };
 
     GLfloat objData1[18] = {
-        -0.5, 0.0, 0, 1, 1, 1,
-         0.0, 0.0, 0, 1, 1, 2,
-         0.5, 0.0, 0, 1, 1, 3,
+        -0.5, 0.0, 0, 1, 1, 4,
+         0.0, 0.0, 0, 1, 1, 5,
+         0.5, 0.0, 0, 1, 1, 6,
     };
+
+    
+    Camera camera = Camera();
+    camera.m_posY = 0.4;
 
     WorldObject wo(10, "Shaders/BasicShader.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_NORMAL);
     WorldObjectAttributes::SetVertexAttribArrayNORMAL(wo);
     wo.SetTexture("Images/Screenshot 2025-01-30 223459.png", "colorTexture");
     wo.SendInstanceData((void*)objData, 0, 0, 3);
+    wo.SendCameraData(&camera);
 
     WorldObject wo1(10, "Shaders/BasicShaderAnimated.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_ANIMATED);
     WorldObjectAttributes::SetVertexAttribArrayANIMATED(wo1);
     WorldObjectAttributes::SetAnimationParameters(wo1, 3, 3, "u_animationSlices");
     wo1.SetTexture("Images/Screenshot 2025-01-19 203317.png", "colorTexture");
     wo1.SendInstanceData((void*)objData1, 0, 0, 3);
+    wo1.SendCameraData(&camera);
 
+    InputManager inputManager = InputManager(window);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -184,13 +127,9 @@ int main(void)
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+        // poll events
         glfwPollEvents();
 
-		//glBindVertexArray(testVertexArray);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//glBindVertexArray(0);
-
-        //wo.RenderInstanced(0, 3);
         wo1.RenderInstanced(0, 3);
 
         objData[0] += 0.01;
@@ -201,12 +140,10 @@ int main(void)
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
         glFlush();
-    }
 
-	glDeleteProgram(shaderProgram);
-	glDeleteVertexArrays(1, &testVertexArray);
-	glDeleteBuffers(1, &testVertexPosBuffer);
-	glDeleteBuffers(1, &testIndexBuffer);
+        // refresh the input manager
+        std::cout << inputManager.GetMovementInput().x << std::endl;
+    }
 
     glfwTerminate();
     return 0;

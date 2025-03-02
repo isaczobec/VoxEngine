@@ -19,16 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AnimationHandler.cpp" />
     <ClCompile Include="src\Appliction.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\ShaderParsing.cpp" />
     <ClCompile Include="src\WorldObject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="headers\AnimationHandling.h" />
     <ClInclude Include="headers\InputManager.h" />
     <ClInclude Include="headers\renderer.h" />
     <ClInclude Include="headers\WorldObject.h" />
     <ClInclude Include="headers\ShaderParsing.h" />
+    <ClInclude Include="src\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BasicShader.shader" />

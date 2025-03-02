@@ -13,6 +13,10 @@ out vec2 uvCoord;
 uniform vec2 u_vertexPositions[4];
 uniform vec2 u_animationSlices;
 
+uniform vec2 u_cameraPosition;
+uniform vec2 u_cameraScale;
+uniform float u_cameraRotation;
+
 vec2 uvCoords[4] = vec2[4](
     vec2(0, 1),
     vec2(1, 1),
@@ -36,9 +40,21 @@ void main()
    rotatedpos = rotatedpos + pos;
 
    vec4 transformedPos = vec4(rotatedpos, 0, 1);
+
+   // perform camera transformations
+   transformedPos.x -= u_cameraPosition.x;
+   transformedPos.y -= u_cameraPosition.y;
+   vec4 rotatedCameraPos = vec4(
+        transformedPos.x * cos(u_cameraRotation) - transformedPos.y * sin(u_cameraRotation),
+        transformedPos.x * sin(u_cameraRotation) + transformedPos.y * cos(u_cameraRotation),
+        0,
+        1
+   );
+   rotatedCameraPos.x *= u_cameraScale.x;
+   rotatedCameraPos.y *= u_cameraScale.y;
   
-   gl_Position =  transformedPos;
-   fragPosition = transformedPos;
+   gl_Position =  rotatedCameraPos;
+   fragPosition = rotatedCameraPos;
 
    // modify UV-coord based on id and the animationFrame
    uvCoord = uvCoords[gl_VertexID % 4];
@@ -46,8 +62,8 @@ void main()
    //uvCoord.y /= 3;
    uvCoord.x /= u_animationSlices.x;
    uvCoord.y /= u_animationSlices.y;
-   uvCoord.x += mod(animationFrame, u_animationSlices.x) / u_animationSlices.x;
-   //uvCoord.y += float(animationFrame / float(u_animationSlices.x)) / float(u_animationSlices.y);
+   uvCoord.x += mod(animationFrame, u_animationSlices.x)    / u_animationSlices.x;
+   uvCoord.y += floor(animationFrame / u_animationSlices.x) / u_animationSlices.y;
 };
 
 

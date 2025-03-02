@@ -1,6 +1,7 @@
 #pragma once
 #include "ShaderParsing.h"
 #include <SOIL2.h>
+#include "camera.h"
 
 
 // A single instance of this struct for every object type should exist
@@ -20,6 +21,11 @@ struct WorldObject {
 	int m_textureHeight;
 	GLuint m_colorTexture;
 
+	// uniform location of camera variables in shader
+	GLuint m_cameraPosLocation;
+	GLuint m_cameraScaleLocation;
+	GLuint m_cameraRotationLocation;
+
 
 	WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName, GLuint bytesPerInstance);
 
@@ -32,6 +38,8 @@ struct WorldObject {
 
 	void RenderInstanced(GLuint targetStartOffset, GLuint amountElements) const;
 
+	void SetCameraUniformLocations();
 
+	void SendCameraData(Camera* camera) const;
 
 };

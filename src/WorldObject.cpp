@@ -107,6 +107,22 @@ void WorldObject::RenderInstanced(GLuint targetStartOffset, GLuint amountElement
 	//glBindBuffer(GL_ARRAY_BUFFER, 0); // the vao was already bound?
 }
 
+void WorldObject::SetCameraUniformLocations() {
+	glUseProgram(m_shaderProgram);
+	m_cameraPosLocation = glGetUniformLocation(m_shaderProgram, CAMERA_POS_UNIFORMNAME);
+	m_cameraScaleLocation = glGetUniformLocation(m_shaderProgram, CAMERA_SCALE_UNIFORMNAME);
+	m_cameraRotationLocation = glGetUniformLocation(m_shaderProgram, CAMERA_ROT_UNIFORMNAME);
+	glUseProgram(0);
+}
+
+void WorldObject::SendCameraData(Camera* camera) const {
+	glUseProgram(m_shaderProgram);
+	glUniform2f(m_cameraPosLocation, camera->m_posX, camera->m_posY);
+	glUniform2f(m_cameraScaleLocation, camera->m_scaleX, camera->m_scaleY);
+	glUniform1f(m_cameraRotationLocation, camera->m_rot);
+	glUseProgram(0);
+}
+
 WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName, GLuint bytesPerInstance) {
 
 	m_bytesPerInstance = bytesPerInstance;
@@ -127,4 +143,5 @@ WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const
 	// create shader program and send vertex positions
 	CreateShaderProgram(shaderPath);
 	CreateAndSendUniformVertexPositionBuffer(uniformPositionsName);
+	SetCameraUniformLocations();
 }
