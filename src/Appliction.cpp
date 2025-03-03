@@ -19,6 +19,8 @@
 
 #include "camera.h"
 
+# include "EnemyHandling.h"
+
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -116,6 +118,19 @@ int main(void)
     wo1.SendInstanceData((void*)objData1, 0, 0, 3);
     wo1.SendCameraData(&camera);
 
+
+
+    WorldObject wo2(10, "Shaders/BasicShaderAnimated.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_ANIMATED, 10);
+    WorldObjectAttributes::SetVertexAttribArrayANIMATED(wo2);
+    WorldObjectAttributes::SetAnimationParameters(wo2, 3, 3, "u_animationSlices");
+    wo2.SetTexture("Images/Screenshot 2025-01-19 203317.png", "colorTexture");
+    wo2.SendCameraData(&camera);
+
+    EnemyList<Enemy> enemyList(10, 5);
+    enemyList.CreateEnemy();
+    enemyList.CreateEnemy();
+    enemyList.CreateEnemy();
+
     InputManager inputManager = InputManager(window);
 
     /* Loop until the user closes the window */
@@ -136,13 +151,13 @@ int main(void)
         objData[2] += 0.01;
         //wo.SendInstanceData((void*)objData, 0, 0, 3);
 
+        HandleTestEnemies(enemyList, wo2);
+
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
         glFlush();
 
-        // refresh the input manager
-        std::cout << inputManager.GetMovementInput().x << std::endl;
     }
 
     glfwTerminate();

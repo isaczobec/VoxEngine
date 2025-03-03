@@ -12,10 +12,12 @@ struct WorldObject {
 	// buffers etc for rendering
 	GLuint m_vertexPositions; // The vertex positions of the object IN OBJECT SPACE
 	GLuint m_shaderProgram;
-	
+
 	GLuint m_objectsBuffer; // the bufffer containing transform matricies etc for this object
 	GLuint m_maxObjects;
 	GLuint m_bytesPerInstance;
+
+	void* m_instanceData = nullptr; // optionally store a pointer to the instance data, managed by this object
 
 	int m_textureWidth;
 	int m_textureHeight;
@@ -27,7 +29,8 @@ struct WorldObject {
 	GLuint m_cameraRotationLocation;
 
 
-	WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName, GLuint bytesPerInstance);
+	WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName, GLuint bytesPerInstance, GLuint instanceDataArrayElementsAmount = -1); // instanceDataArrayElementsAmount is -1 if we dont want this worldobject to handle its own instance data 
+	~WorldObject();
 
 	void SetTexture(const char* textureFilePath, const char* shaderColorTextureName, GLint textureUnitID = 0);
 	void CreateShaderProgram(const std::string& filePath);

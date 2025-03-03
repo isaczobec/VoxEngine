@@ -31,7 +31,8 @@
     <ClInclude Include="headers\renderer.h" />
     <ClInclude Include="headers\WorldObject.h" />
     <ClInclude Include="headers\ShaderParsing.h" />
-    <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="headers\Camera.h" />
+    <ClInclude Include="headers\EnemyHandling.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BasicShader.shader" />

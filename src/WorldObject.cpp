@@ -123,7 +123,13 @@ void WorldObject::SendCameraData(Camera* camera) const {
 	glUseProgram(0);
 }
 
-WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const char* uniformPositionsName, GLuint bytesPerInstance) {
+WorldObject::WorldObject(
+	GLuint maxObjects, 
+	const std::string& shaderPath, 
+	const char* uniformPositionsName, 
+	GLuint bytesPerInstance, 
+	GLuint instanceDataArrayElementsAmount // -1 if we dont want to manage the instance data within the world object
+) {
 
 	m_bytesPerInstance = bytesPerInstance;
 
@@ -144,4 +150,33 @@ WorldObject::WorldObject(GLuint maxObjects, const std::string& shaderPath, const
 	CreateShaderProgram(shaderPath);
 	CreateAndSendUniformVertexPositionBuffer(uniformPositionsName);
 	SetCameraUniformLocations();
+
+	// allocate the instance data array if specefied to do so
+	if (instanceDataArrayElementsAmount != -1) {
+		m_instanceData = (void*)(new char[instanceDataArrayElementsAmount * bytesPerInstance]);
+	}
+
+
+}
+
+WorldObject::~WorldObject() {
+
+	if (m_instanceData != nullptr) {
+		delete[] m_instanceData;
+	}
+
+	if (m_shaderProgram) {
+		glDeleteProgram(m_shaderProgram);
+	}
+	if (m_VAO) {
+		glDeleteVertexArrays(1, &m_VAO);
+	}
+	if (m_objectsBuffer) {
+		glDeleteBuffers(1, &m_objectsBuffer);
+	}
+	if (m_colorTexture) {
+		glDeleteTextures(1, &m_colorTexture);
+	}
+
+
 }
