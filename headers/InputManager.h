@@ -27,6 +27,4 @@ public:
 	glm::vec2 GetMousePositionDelta();
 
 	void Refresh();
-
-	
 };
