@@ -126,7 +126,7 @@ int main(void)
     wo2.SetTexture("Images/Screenshot 2025-01-19 203317.png", "colorTexture");
     wo2.SendCameraData(&camera);
 
-    EnemyList<Enemy> enemyList(10, 5);
+    EnemyList<TestEnemy> enemyList(10, 5);
     enemyList.CreateEnemy();
     enemyList.CreateEnemy();
     enemyList.CreateEnemy();

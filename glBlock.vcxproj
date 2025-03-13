@@ -21,14 +21,21 @@
   <ItemGroup>
     <ClCompile Include="src\AnimationHandler.cpp" />
     <ClCompile Include="src\Appliction.cpp" />
+    <ClCompile Include="src\Chunk.cpp" />
+    <ClCompile Include="src\HandleTestEnemies.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\ShaderParsing.cpp" />
     <ClCompile Include="src\WorldObject.cpp" />
+    <ClCompile Include="src\WorldObjectVertexAttributes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\AnimationHandling.h" />
+    <ClInclude Include="headers\Chunk.h" />
+    <ClInclude Include="headers\Enemies.h" />
     <ClInclude Include="headers\InputManager.h" />
     <ClInclude Include="headers\renderer.h" />
+    <ClInclude Include="headers\Scene.h" />
     <ClInclude Include="headers\WorldObject.h" />
     <ClInclude Include="headers\ShaderParsing.h" />
     <ClInclude Include="headers\Camera.h" />

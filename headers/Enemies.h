@@ -9,5 +9,5 @@ protected:
 };
 
 
-class RangedEnemy : public Enemy {
+class MeeleEnemy : public Enemy {
 };

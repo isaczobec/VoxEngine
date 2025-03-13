@@ -1,7 +1,7 @@
 #pragma once
 #include "Camera.h"
 #include "WorldObject.h"
-#include<vector>
+#include "WorldObjectVertexAttributes.h"
 
 class Scene {
 
