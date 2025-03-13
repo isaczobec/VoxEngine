@@ -24,6 +24,7 @@ public:
 	Chunk(int xCoord = 0, int yCoord = 0);
 
 	void Update();
+	void SetChunkCoords(int x, int y);
 };
 
 class ChunkHandler {
