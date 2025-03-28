@@ -19,7 +19,11 @@
 
 #include "camera.h"
 
-# include "EnemyHandling.h"
+#include "EnemyHandling.h"
+
+#include "Chunk.h"
+
+#include "WorldObjectHandler.h"
 
 
 
@@ -103,7 +107,8 @@ int main(void)
 
     
     Camera camera = Camera();
-    camera.m_posY = 0.4;
+    camera.m_scaleX = 0.1f;
+    camera.m_scaleY = 0.1f;
 
     WorldObject wo(10, "Shaders/BasicShader.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_NORMAL);
     WorldObjectAttributes::SetVertexAttribArrayNORMAL(wo);
@@ -119,7 +124,6 @@ int main(void)
     wo1.SendCameraData(&camera);
 
 
-
     WorldObject wo2(10, "Shaders/BasicShaderAnimated.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_ANIMATED, 10);
     WorldObjectAttributes::SetVertexAttribArrayANIMATED(wo2);
     WorldObjectAttributes::SetAnimationParameters(wo2, 3, 3, "u_animationSlices");
@@ -133,6 +137,12 @@ int main(void)
 
     InputManager inputManager = InputManager(window);
 
+    // Create WorldObjectHandler
+    WorldObjectHandler worldObjectHandler(&camera);
+    
+    // --- CREATE CHUNKHANDLER ---
+    ChunkHandler chunkHandler(256,10,4,&worldObjectHandler);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -145,14 +155,19 @@ int main(void)
         // poll events
         glfwPollEvents();
 
-        wo1.RenderInstanced(0, 3);
+        //wo1.RenderInstanced(0, 3);
 
-        objData[0] += 0.01;
-        objData[2] += 0.01;
+        //objData[0] += 0.01;
+        //objData[2] += 0.01;
         //wo.SendInstanceData((void*)objData, 0, 0, 3);
 
-        HandleTestEnemies(enemyList, wo2);
+        //HandleTestEnemies(enemyList, wo2);
 
+        // TEST NEW CLASSES
+        chunkHandler.UpdateChunks();
+        chunkHandler.CollectEnemyDataToCollectorBuffers();
+        worldObjectHandler.SendBufferData();
+        worldObjectHandler.RenderObjects();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

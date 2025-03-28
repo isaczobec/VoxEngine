@@ -31,7 +31,7 @@ public:
     EnemyList(uint maxCapacity = 1000, uint startCapacity = 50);
     ~EnemyList();
     void DeleteEnemy(uint deleteIndex);
-    int CreateEnemy();
+    E* CreateEnemy();
     bool IsEmpty();
     E* GetEnemyList();
 };
@@ -52,18 +52,20 @@ EnemyList<E>::~EnemyList() {
 }
 
 template<typename E>
-int EnemyList<E>::CreateEnemy() {
+E* EnemyList<E>::CreateEnemy() {
     // Check if capacity needs to be increased
     if (m_length >= m_currentCapacity) {
         if (IncreaseListCapacity() == -1) {
             std::cout << "The EnemyList is at full capacity and new enemies cannot be added!" << std::endl;
-            return -1;
+            return nullptr;
         }
     }
     m_enemyArray[m_length] = E();  // Create a new instance of E
+    E* newEnemy = &m_enemyArray[m_length];  // Store the pointer to the new enemy
     m_length++;
-    return 0;
+    return newEnemy;
 }
+
 
 template<typename E>
 int EnemyList<E>::IncreaseListCapacity() {
