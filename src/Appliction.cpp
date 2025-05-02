@@ -2,9 +2,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <vector>
-#include <renderer.h>
 
-#include <glm/vec4.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <fstream>
 #include <string>
@@ -15,22 +15,16 @@
 
 #include "ShaderParsing.h"
 #include "WorldObject.h"
-#include "WorldObjectVertexAttributes.h"
 
 #include "camera.h"
 
-#include "EnemyHandling.h"
-
-#include "Chunk.h"
-
-#include "WorldObjectHandler.h"
-
-
+#include "GTime.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	//glViewport(0, 0, width, height);
 }
+
 
 
 // --------------------------------------
@@ -42,7 +36,7 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    const int WINDOW_SIZE = 1280;
+    const int WINDOW_HEIGHT = 1280;
     const int WINDOW_WIDTH = 1920;
 	int framebufferWidth = 0;
 	int framebufferHeight = 0;
@@ -56,7 +50,7 @@ int main(void)
 
     /* Create a windowed mode window and its OpenGL context */
     GLFWwindow* window;
-    window = glfwCreateWindow(1280, 1280, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Hello World", NULL, NULL);
 	glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight); // set framebuffer size
 	glViewport(0, 0, framebufferWidth, framebufferHeight); // set viewport size
 
@@ -92,88 +86,79 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
+    ShaderParsing::ShaderProgramSource src = ShaderParsing::ParseShader("Shaders/BasicShader.shader");
+    GLuint sProgram = ShaderParsing::CreateShader(src.vertexSource, src.fragmentSource);
 
-    GLfloat objData[15] = {
-        -0.5, -0.5, 0, 1, 1,
-        -0.5, -0.1, 3.141592 / 4, 1, 3,
-         0.5, -0.5, 0, 1, 1,
+    GLfloat objData[9] = {
+        0.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f
     };
-
-    GLfloat objData1[18] = {
-        -0.5, 0.0, 0, 1, 1, 4,
-         0.0, 0.0, 0, 1, 1, 5,
-         0.5, 0.0, 0, 1, 1, 6,
-    };
-
     
-    Camera camera = Camera();
-    camera.m_scaleX = 0.1f;
-    camera.m_scaleY = 0.1f;
+    GLuint testBuffer;
+    GLuint testVAO;
+    glGenBuffers(1, &testBuffer);
+    glGenVertexArrays(1, &testVAO);
 
-    WorldObject wo(10, "Shaders/BasicShader.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_NORMAL);
-    WorldObjectAttributes::SetVertexAttribArrayNORMAL(wo);
-    wo.SetTexture("Images/Screenshot 2025-01-30 223459.png", "colorTexture");
-    wo.SendInstanceData((void*)objData, 0, 0, 3);
-    wo.SendCameraData(&camera);
+    glBindVertexArray(testVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, testBuffer);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat), (void*)0 );
 
-    WorldObject wo1(10, "Shaders/BasicShaderAnimated.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_ANIMATED);
-    WorldObjectAttributes::SetVertexAttribArrayANIMATED(wo1);
-    WorldObjectAttributes::SetAnimationParameters(wo1, 3, 3, "u_animationSlices");
-    wo1.SetTexture("Images/Screenshot 2025-01-19 203317.png", "colorTexture");
-    wo1.SendInstanceData((void*)objData1, 0, 0, 3);
-    wo1.SendCameraData(&camera);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 9, (void*)objData, GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
-    WorldObject wo2(10, "Shaders/BasicShaderAnimated.shader", "u_vertexPositions", WorldObjectAttributes::BYTES_ANIMATED, 10);
-    WorldObjectAttributes::SetVertexAttribArrayANIMATED(wo2);
-    WorldObjectAttributes::SetAnimationParameters(wo2, 3, 3, "u_animationSlices");
-    wo2.SetTexture("Images/Screenshot 2025-01-19 203317.png", "colorTexture");
-    wo2.SendCameraData(&camera);
-
-    EnemyList<TestEnemy> enemyList(10, 5);
-    enemyList.CreateEnemy();
-    enemyList.CreateEnemy();
-    enemyList.CreateEnemy();
-
-    InputManager inputManager = InputManager(window);
-
-    // Create WorldObjectHandler
-    WorldObjectHandler worldObjectHandler(&camera);
+    // use program and get camera location
+    glUseProgram(sProgram);
+    GLuint mvpLoc = glGetUniformLocation(sProgram, "mvp");
     
-    // --- CREATE CHUNKHANDLER ---
-    ChunkHandler chunkHandler(256,10,4,&worldObjectHandler);
+    InputManager inputManager = InputManager(window, 0.00140f);
 
+    Camera camera(framebufferWidth, framebufferHeight, 1);
+
+    GLfloat deg = 0;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-
-
-        /* Render here */
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
         // poll events
         glfwPollEvents();
 
-        //wo1.RenderInstanced(0, 3);
+        // Update time variables
+        GTime::Update();
 
-        //objData[0] += 0.01;
-        //objData[2] += 0.01;
-        //wo.SendInstanceData((void*)objData, 0, 0, 3);
+        // update input and camera
+        inputManager.UpdateInput(window);
+        camera.UpdateCameraTransform();
 
-        //HandleTestEnemies(enemyList, wo2);
+        // get mvp matrix and send it to the gpu
+        glm::mat4x4* mvp = camera.GetMVPMatrix();
+        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &(*mvp)[0][0]);
+        
+        deg += 0.02f;
 
-        // TEST NEW CLASSES
-        chunkHandler.UpdateChunks();
-        chunkHandler.CollectEnemyDataToCollectorBuffers();
-        worldObjectHandler.SendBufferData();
-        worldObjectHandler.RenderObjects();
+
+        /* Render here */
+        glBindVertexArray(testVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
-        glFlush();
 
+
+        // clear buffers
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        inputManager.ClearInput();
     }
+
+    // delete buffers
+    glDeleteBuffers(1, &testBuffer);
+    glDeleteVertexArrays(1, &testVAO);
 
     glfwTerminate();
     return 0;

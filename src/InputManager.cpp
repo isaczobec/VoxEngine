@@ -1,107 +1,70 @@
 #include <InputManager.h>
-#include<GLFW/glfw3.h>
-#include <glm/vec2.hpp>
 #include <cmath>
 #include <iostream>
+#include "Time.h"
 
-InputManager* InputManager::m_Instance = nullptr;
+InputManager* InputManager::inst = nullptr;
 
-InputManager::InputManager(GLFWwindow* window) {
-	
-	// initialize members
-	m_Instance = this; // set the pointer to the current instance
-	m_currentMovementInput = glm::vec2(0.0, 0.0); // set the movement input vector to 0
+InputManager::InputManager(GLFWwindow* window, GLfloat cameraSensitivity) {
 
-	m_mousePositionCurrent = glm::vec2(0.0, 0.0);
-	m_mousePositionPrevious = glm::vec2(0.0, 0.0);
-	m_mousePositionDelta = glm::vec2(0.0, 0.0);
-	m_mouseDeltaMin = 2; // set the minimum delta for the mouse to move
+	if (inst != nullptr) {
+		std::cout << "There already exists an InputManager!" << std::endl;
+		return;
+	}
+	inst = this;
 
-	// enable raw mouse input and disable cursor
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	if (glfwRawMouseMotionSupported()) {
-		glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-	}
 
-	// set the key callback
-	glfwSetKeyCallback(window, UpdateCurrentMovementInput);
-	glfwSetCursorPosCallback(window, UpdateMousePosition);
-	
+	// Get actual cursor position to avoid huge initial delta
+	glfwGetCursorPos(window, &cursorpos_x, &cursorpos_y);
+
+	glfwSetCursorPosCallback(window, MouseCallback);
+	glfwSetCursorPosCallback(window, MouseCallback);
+
+	cursorpos_x = 0;
+	cursorpos_y = 0;
+	m_cameraSensitivity = cameraSensitivity;
+	m_mousePositionDelta = glm::vec2(0.0f, 0.0f);
+	m_movementInput = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
-void InputManager::UpdateCurrentMovementInput(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void InputManager::UpdateInput(GLFWwindow* window) {
+	m_movementInput[2] = 0;
+	m_movementInput[1] = 0;
+	m_movementInput[0] = 0;
 
-	if (action == GLFW_PRESS) {
-		// jättesnyggt verkligen
-		switch (key)
-		{
-		default:
-			break;
-		case GLFW_KEY_A:
-			m_Instance->m_currentMovementInput.x -= 1.0;
-			break;
-		case GLFW_KEY_D:
-			m_Instance->m_currentMovementInput.x += 1.0;
-			break;
-		case GLFW_KEY_W:
-			m_Instance->m_currentMovementInput.y -= 1.0;
-			break;
-		case GLFW_KEY_S:
-			m_Instance->m_currentMovementInput.y += 1.0;
-			break;
-		}
-	} else if (action == GLFW_RELEASE) {
-		switch (key)
-		{
-		default:
-			break;
-		case GLFW_KEY_A:
-			m_Instance->m_currentMovementInput.x += 1.0;
-			break;
-		case GLFW_KEY_D:
-			m_Instance->m_currentMovementInput.x -= 1.0;
-			break;
-		case GLFW_KEY_W:
-			m_Instance->m_currentMovementInput.y += 1.0;
-			break;
-		case GLFW_KEY_S:
-			m_Instance->m_currentMovementInput.y -= 1.0;
-			break;
-		}
-	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		m_movementInput[1] += 1;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		m_movementInput[1] += -1;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		m_movementInput[0] += 1;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		m_movementInput[0] += -1;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		m_movementInput[2] += 1;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		m_movementInput[2] += -1;
 }
 
-void InputManager::UpdateMousePosition(GLFWwindow* window, double xpos, double ypos) { 
-	m_Instance->m_mousePositionPrevious = m_Instance->m_mousePositionCurrent;
-	m_Instance->m_mousePositionCurrent = glm::vec2(xpos, ypos);
-	m_Instance->m_mousePositionDelta = m_Instance->m_mousePositionCurrent - m_Instance->m_mousePositionPrevious;
+void InputManager::MouseCallback(GLFWwindow* window, double xpos, double ypos) {
+	inst->m_mousePositionDelta = glm::vec2(0.0f);
 
+	inst->m_mousePositionDelta[0] = (xpos - inst->cursorpos_x) * inst->m_cameraSensitivity;
+	inst->m_mousePositionDelta[1] = (inst->cursorpos_y - ypos) * inst->m_cameraSensitivity;
 
-	if (std::abs(m_Instance->m_mousePositionDelta.x) < m_Instance->m_mouseDeltaMin) {
-		m_Instance->m_mousePositionDelta.x = 0.0;
-	}
-	if (std::abs(m_Instance->m_mousePositionDelta.y) < m_Instance->m_mouseDeltaMin) {
-		m_Instance->m_mousePositionDelta.y = 0.0;
-	}
+	inst->cursorpos_x = xpos;
+	inst->cursorpos_y = ypos;
 }
 
 glm::vec2 InputManager::GetMousePositionDelta() {
 	return m_mousePositionDelta;
 }
-
-void InputManager::ResetMovementVector() {
-	// reset input vector
-	m_currentMovementInput.x = 0.0;
-	m_currentMovementInput.y = 0.0;
+glm::vec3 InputManager::GetMovementInput() {
+	return m_movementInput;
 }
 
-glm::vec2 InputManager::GetMovementInput() {
-	return m_currentMovementInput;
+void InputManager::ClearInput() {
+	m_mousePositionDelta[0] = 0;
+	m_mousePositionDelta[1] = 0;
 }
-
-void InputManager::Refresh() {
-	// reset input vector
-	ResetMovementVector();
-}
-
-
